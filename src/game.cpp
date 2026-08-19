@@ -12,7 +12,7 @@ GameObject* player;
 Map* map;
 SDL_Renderer* Game::renderer = nullptr;
 
-Manager manager;
+EntityManager manager;
 auto &newPlayer(manager.addEntity());
 
 Game::Game() {

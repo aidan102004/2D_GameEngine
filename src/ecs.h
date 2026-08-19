@@ -7,32 +7,32 @@
 #include <bitset>
 #include <array>
 
+//forward declarations
 class Component;
 class Entity;
 
-using ComponentID = std::size_t;
-
-inline ComponentID getComponentTypeID()
+inline std::size_t getComponentTypeID()
 {
-    static ComponentID lastID = 0;
+    static std::size_t lastID = 0; //increment ID and return it
     return lastID++;
 }
 
-template <typename T> inline ComponentID getComponentTypeID() noexcept 
+template <typename T> inline std::size_t getComponentTypeID() noexcept 
 {
-    static ComponentID typeID = getComponentTypeID();
+    static std::size_t typeID = getComponentTypeID(); //this is called once on the first initialisation of an object, subsequent calls will skip this line as its static
     return typeID;
 }
 
-constexpr std::size_t maxComponents = 32;
+constexpr std::size_t maxComponents = 32; //compile time constant for array and bitset size
 
 using ComponentBitSet = std::bitset<maxComponents>;
 using ComponentArray = std::array<Component*, maxComponents>;
 
+//abstract component class
 class Component
 {
     public:
-        Entity* entity;
+        Entity* entity; //which entity this component belongs to
         
         virtual void init() {}
         virtual void update() {}
@@ -40,18 +40,19 @@ class Component
         virtual ~Component() {}
 };
 
+
 class Entity
 {
     private:
         bool active = true;
-        std::vector<std::unique_ptr<Component>> components;
+        std::vector<std::unique_ptr<Component>> components; //components on this entity, automatically cleaned up on destroy
 
         ComponentArray componentArray;
         ComponentBitSet componentBitSet;
     public:
         void update()
         {
-            for (auto &c : components) c->update();
+            for (auto &c : components) c->update(); //call update on all components and then draw
             for (auto &c : components) c->draw();
         }
         void draw() {}
@@ -59,35 +60,35 @@ class Entity
         void destroy() {active = false;}
 
         template <typename T> bool hasComponent() const{
-            return componentBitSet[getComponentTypeID<T>()];
+            return componentBitSet[getComponentTypeID<T>()]; //searches T unique id, checks that bit in the bitset to see if active or not
         }
-        template <typename T, typename... TArgs>
-        T& addComponent(TArgs&&... mArgs)
+        template <typename T, typename... TArgs> //variadic template
+        T& addComponent(TArgs&&... mArgs) //forward reference arguments, preserving lvalue/rvalue
         {
-            T* c(new T(std::forward<TArgs>(mArgs)...));
-            c->entity = this;
-            std::unique_ptr<Component>  uPtr{ c };
-            components.emplace_back(std::move(uPtr));
+            T* c(new T(std::forward<TArgs>(mArgs)...)); //allocates T object on the heap, passes each arg thru
+            c->entity = this; //set parent entity
+            std::unique_ptr<Component>  uPtr{ c }; //create unique ptr to c
+            components.emplace_back(std::move(uPtr)); //constructs new slot directly in vector
 
-            componentArray[getComponentTypeID<T>()] = c;
-            componentBitSet[getComponentTypeID<T>()] = true;
+            componentArray[getComponentTypeID<T>()] = c; //stores raw ptr at the index
+            componentBitSet[getComponentTypeID<T>()] = true; //flips bit on
 
-            c->init();
-            return *c;
+            c->init(); //calls virtual init function
+            return *c; //dereferences and returns c by reference
         }
 
         template<typename T> T& GetComponent() const
         {
-            auto ptr(componentArray[getComponentTypeID<T>()]);
-            return *static_cast<T*>(ptr);
+            auto ptr(componentArray[getComponentTypeID<T>()]); 
+            return *static_cast<T*>(ptr); //return a reference to the component
         }
 
 };
 
-class Manager
+class EntityManager
 {
     private:
-        std::vector<std::unique_ptr<Entity>> entities;
+        std::vector<std::unique_ptr<Entity>> entities; //stores all entities
     public:
         void update() 
         {
@@ -99,20 +100,21 @@ class Manager
         }
         void refresh()
         {
-            entities.erase(std::remove_if(std::begin(entities), std::end(entities),
-                [](const std::unique_ptr<Entity> &mEntity)
-                {
-                    return !mEntity->isActive();
-                }
-                )),
-                    std::end(entities); 
+            //moves values to be removed to end of vector and deletes them
+            entities.erase(
+                std::remove_if(std::begin(entities), std::end(entities),
+                    [](const std::unique_ptr<Entity> &mEntity) {
+                        return !mEntity->isActive();
+                    }),
+                std::end(entities) 
+            );
         }
 
         Entity& addEntity()
         {
-            Entity* e = new Entity();
-            std::unique_ptr<Entity> uPtr{e};
-            entities.emplace_back(std::move(uPtr));
+            Entity* e = new Entity(); //creates new entity ptr
+            std::unique_ptr<Entity> uPtr{e}; //creates unique ptr wrapped around e
+            entities.emplace_back(std::move(uPtr)); //constructs in vector
             return *e;
         }
 };
