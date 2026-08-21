@@ -1,6 +1,6 @@
 #pragma once
 
 #include "ecs.h"
-#include "positioncomponent.h"
+#include "transformcomponent.h"
 
 #include "spritecomponent.h"

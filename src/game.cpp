@@ -46,7 +46,7 @@ void Game::init(const char* title, int x_pos, int y_pos, int width, int height, 
     map = new Map();
 
     //ecs implementation
-    player.addComponent<PositionComponent>();
+    player.addComponent<TransformComponent>();
     player.addComponent<SpriteComponent>("assets/player.png");
 }
 
