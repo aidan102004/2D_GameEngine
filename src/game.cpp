@@ -4,6 +4,7 @@
 #include "map.h"
 #include "ecs/components.h"
 #include "ecs/spritecomponent.h"
+#include "vector2d.h"
 
 
 Map* map;
@@ -67,10 +68,9 @@ void Game::update()
 {
     manager.refresh();
     manager.update();
-
-    if (player.GetComponent<TransformComponent>().x() > 100) 
+    player.GetComponent<TransformComponent>().position.Add(Vector2D(5, 0));
+    if (player.GetComponent<TransformComponent>().position.x > 100) 
     {
-        std::cout << "test swap" << std::endl;
         player.GetComponent<SpriteComponent>().setTexture("assets/player1.png");
     }
     
