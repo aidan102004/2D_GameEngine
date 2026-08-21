@@ -17,6 +17,7 @@ class Game
 
         inline bool running() {return is_running;};
         static SDL_Renderer* renderer;
+        static SDL_Event event;
     private:
         int cnt{0};
         bool is_running;
