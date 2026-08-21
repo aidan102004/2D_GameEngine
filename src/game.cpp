@@ -68,7 +68,7 @@ void Game::update()
     manager.refresh();
     manager.update();
 
-    if (player.GetComponent<PositionComponent>().x() > 100) 
+    if (player.GetComponent<TransformComponent>().x() > 100) 
     {
         std::cout << "test swap" << std::endl;
         player.GetComponent<SpriteComponent>().setTexture("assets/player1.png");
